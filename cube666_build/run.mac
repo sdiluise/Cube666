@@ -1,0 +1,13 @@
+
+/gps/particle proton
+
+/gps/ang/type iso
+
+/gps/ene/type Gauss
+/gps/ene/mono 9. eV
+/gps/ene/sigma 0 eV
+
+/gps/pos/centre 100 0.1 0.1 mm
+/gps/number 20
+/run/beamOn 1
+

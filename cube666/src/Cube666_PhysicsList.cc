@@ -1,0 +1,594 @@
+#include "iostream"
+using namespace std;
+#include "Cube666_PhysicsList.hh"
+#include "G4Electron.hh"
+#include "G4Positron.hh"
+#include "G4Gamma.hh"
+#include "G4Neutron.hh"
+#include "G4Proton.hh"
+#include "G4Alpha.hh"
+#include "G4GenericIon.hh"
+#include "G4MuonMinus.hh"
+#include "G4MuonPlus.hh"
+
+#include "G4ProcessManager.hh"
+#include "G4GammaConversion.hh"
+#include "G4ComptonScattering.hh"
+#include "G4PhotoElectricEffect.hh"
+#include "G4LivermorePhotoElectricModel.hh"
+#include "G4RayleighScattering.hh"
+#include "G4LivermoreComptonModel.hh"
+#include "G4LivermoreGammaConversionModel.hh"
+#include "G4LivermoreRayleighModel.hh"
+
+#include "G4eMultipleScattering.hh"
+#include "G4CoulombScattering.hh"
+#include "G4eIonisation.hh"
+#include "G4hIonisation.hh"
+#include "G4MuIonisation.hh"
+#include "G4MuMultipleScattering.hh"
+#include "G4MuBremsstrahlung.hh"
+
+#include "G4eBremsstrahlung.hh"
+#include "G4eplusAnnihilation.hh"
+
+#include "G4ionIonisation.hh"
+#include "G4IonConstructor.hh"
+#include "G4BetheBlochModel.hh"
+
+#include "G4hMultipleScattering.hh"
+#include "G4hBremsstrahlung.hh"
+
+#include "G4NeutronHPElastic.hh"
+#include "G4HadronElasticProcess.hh"
+#include "G4NeutronHPElasticData.hh"
+#include "G4NeutronHPInelasticData.hh"
+#include "G4HadronCaptureProcess.hh"
+#include "G4NeutronHPCapture.hh"
+#include "G4NeutronHPCaptureData.hh"
+//OLD
+//#include "G4LENeutronInelastic.hh"
+#include "G4NeutronHPInelastic.hh"
+//OLD
+//#include "G4NeutronHPorLElastic.hh"
+//#include "G4NeutronHPorLEInelastic.hh"
+
+#include "G4LivermoreIonisationModel.hh"
+#include "G4UniversalFluctuation.hh"
+#include "G4LivermoreBremsstrahlungModel.hh"
+#include "G4GoudsmitSaundersonMscModel.hh"
+//OLD
+//#include "G4UrbanMscModel95.hh"
+//#include "G4UrbanMscModel90.hh"
+//NEW
+#include "G4UrbanMscModel.hh"
+//
+#include "G4MesonConstructor.hh"
+#include "G4IonParametrisedLossModel.hh"
+#include "G4WentzelVIModel.hh"
+
+#include "G4ProductionCutsTable.hh"
+#include "G4BaryonConstructor.hh"
+#include "G4ShortLivedConstructor.hh"
+
+#include "G4HadronInelasticProcess.hh"
+#include "G4NeutronInelasticProcess.hh"
+#include "G4NeutronHPElastic.hh"
+//OLD
+//#include "G4LENeutronInelastic.hh"
+#include "G4NeutronHPInelastic.hh"
+
+#include "G4OpRayleigh.hh"
+#include "G4OpBoundaryProcess.hh"
+#include "G4OpWLS.hh"
+
+#include "Cube666_Scintillation.hh"
+
+#include "preparation.hh"
+
+#include "G4NuclearStopping.hh"
+#include "G4Decay.hh"
+#include "G4MuPairProduction.hh"
+
+Cube666_PhysicsList::Cube666_PhysicsList()
+  :G4VUserPhysicsList(){
+
+  SetVerboseLevel(1);
+  if(VERBOSE) SetVerboseLevel(4);
+}
+
+
+
+Cube666_PhysicsList::~Cube666_PhysicsList(){;}
+
+
+
+void Cube666_PhysicsList::ConstructParticle(){
+
+  G4Electron::Electron();
+  G4Positron::Positron();
+  G4MuonMinus::MuonMinus();
+  G4MuonPlus::MuonPlus();
+  G4OpticalPhoton::OpticalPhoton();
+  G4Gamma::Gamma();
+  G4Neutron::Neutron();
+  G4Proton::Proton();
+  G4MesonConstructor::ConstructParticle();
+  G4BaryonConstructor::ConstructParticle(); 
+  //<-- w/o this (G4BaryonConstructor), GEANT4 throws a fatal exception and exits when neutrons are emitted
+
+  G4IonConstructor::ConstructParticle();
+
+  G4ShortLivedConstructor::ConstructParticle();
+  
+
+  return;
+}
+
+
+void Cube666_PhysicsList::ConstructProcess(){
+
+  AddTransportation();
+
+  theParticleIterator->reset();
+  while((*theParticleIterator)()){
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4ProcessManager*     pmanager = particle->GetProcessManager();
+    G4String          particleName = particle->GetParticleName();
+    
+    if      (particleName == "e-"){                   electronPhysics(pmanager);
+
+    }else if(particleName == "e+"){                   positronPhysics(pmanager);
+
+    }else if(particleName == "mu-" ||
+	     particleName == "mu+"){                  muonPhysics(pmanager);
+
+    }else if(particleName == "opticalphoton"){        opPhotonPhysics(pmanager);
+
+    }else if(particleName == "gamma"){                gammaPhysics(pmanager);
+
+    }else if(particleName == "proton"   ||
+	     particleName == "deuteron" || 
+	     particleName == "triton"   ||
+	     particleName == "pi-"      ||
+	     particleName == "pi+"      ||
+	     particleName == "kaon-"    ||
+	     particleName == "kaon+"){                protonPhysics(pmanager);
+
+    }else if(particleName == "neutron"){              neutronPhysics(pmanager);
+
+    }else if(particleName == "alpha"       || 
+	     //particleName == "proton"    ||
+	     //particleName == "deuteron"    ||
+	     particleName == "He3"         ||
+	     particleName == "GenericIon"         
+	     ){                                       ionPhysics(pmanager);
+
+    }else if(particleName == "B+"              ||
+	     particleName == "B-"              ||
+	     particleName == "D+"              ||
+	     particleName == "D-"              ||
+	     particleName == "Ds+"             ||
+	     particleName == "Ds-"             ||
+	     //particleName == "anti_He3"      ||
+	     //particleName == "anti_alpha"    ||
+	     //particleName == "anti_deuteron" ||
+	     particleName == "anti_lambda_c+"  ||
+	     particleName == "anti_omega-"     ||
+	     //particleName == "anti_proton"   ||
+	     particleName == "anti_sigma_c+"   ||
+	     particleName == "anti_sigma_c++"  ||
+	     particleName == "anti_sigma+"     ||
+	     particleName == "anti_sigma-"     ||
+	     particleName == "anti_triton"     ||
+	     particleName == "anti_xi_c+"      ||
+	     particleName == "anti_xi-"        ||
+	     //particleName == "deuteron"      ||
+	     particleName == "lambda_c+"       ||
+	     particleName == "omega-"          ||
+	     particleName == "sigma_c+"        ||
+	     particleName == "sigma_c++"       ||
+	     particleName == "sigma+"          ||
+	     particleName == "sigma-"          ||
+	     particleName == "tau+"            ||
+	     particleName == "tau-"            ||
+	     //particleName == "triton"          ||
+	     particleName == "xi_c+"           ||
+	     particleName == "xi-" 
+	     ){                                       hadronPhysics(pmanager);
+    }
+    
+  }
+
+  addScintillation();
+ 
+  return;
+} 
+
+
+void Cube666_PhysicsList::SetCuts(){
+  SetCutsWithDefault();
+}  
+
+
+
+
+
+
+
+void Cube666_PhysicsList::electronPhysics(G4ProcessManager* pmanager){
+
+  //use livermore model for low energy processes (valid for 250 eV < E < 100 GeV)
+  //when combined with standard electromagnetic physics models
+  //livermore models will be replaced at E > 1 GeV
+  //check the following link out !
+  //https://twiki.cern.ch/twiki/bin/view/Geant4/LoweMigratedLivermore
+
+  //code copied from G4EmLivermorePhysics::ConstructProcess()
+  //for e-
+
+
+
+  //test !!
+  if(0){
+    G4CoulombScattering* coulombScatt = new G4CoulombScattering;
+    pmanager->AddProcess(coulombScatt,-1,-1,4);
+  }
+
+  //end test
+
+
+
+  //multi-scattering
+  if(1){
+  G4eMultipleScattering* multiScatt = new G4eMultipleScattering;
+  multiScatt->AddEmModel(0, new G4GoudsmitSaundersonMscModel);
+  //OLD
+  //multiScatt->AddEmModel(0, new G4UrbanMscModel95);
+  //NEW
+  multiScatt->AddEmModel(0, new G4UrbanMscModel);
+  //
+  multiScatt->SetStepLimitType(fUseDistanceToBoundary);
+  pmanager->AddProcess(multiScatt, -1, 1, 1);
+  }
+
+
+  //ionisation
+  if(1){
+  G4eIonisation* ioni = new G4eIonisation;
+  G4LivermoreIonisationModel* ioniLivermoreModel = new G4LivermoreIonisationModel;
+
+  //e- from Ar39 background has Emax ~ 550 keV
+  //what does highEnergyLimit mean ??
+  //ioniLivermoreModel->SetHighEnergyLimit(1.*MeV); 
+  G4ProductionCutsTable::GetProductionCutsTable()->SetEnergyRange(250*eV,100*GeV);
+  
+
+  ioni->AddEmModel(0,ioniLivermoreModel,new G4UniversalFluctuation);
+  ioni->SetStepFunction(.2,100*um);    //<-- what does it do exactly ??
+  //G4eIonisation::SetStepFunction(G4double roverRange,G4double finalRange)
+  //step/Range < roverRange <-- where is Range defined ??
+  //step > finalRange for all steps !
+  pmanager->AddProcess(ioni,-1, 2, 2); //<-- what does -1,2,2 do ?
+  }
+
+  //bremsstrahlung
+  if(1){
+  G4eBremsstrahlung* brem = new G4eBremsstrahlung;
+  G4LivermoreBremsstrahlungModel* bremLivermoreModel = new G4LivermoreBremsstrahlungModel;
+  bremLivermoreModel->SetHighEnergyLimit(1.*GeV);
+  brem->AddEmModel(0,bremLivermoreModel);
+  pmanager->AddProcess(brem,-1,-3,3);
+
+  }
+
+  return;
+}
+
+
+
+
+
+void Cube666_PhysicsList::positronPhysics(G4ProcessManager* pmanager){
+
+
+  if(1){
+  G4eMultipleScattering* multiScatt = new G4eMultipleScattering;
+  multiScatt->AddEmModel(0, new G4GoudsmitSaundersonMscModel);
+  //OLD
+  //multiScatt->AddEmModel(0, new G4UrbanMscModel95);
+  //NEW
+  multiScatt->AddEmModel(0, new G4UrbanMscModel);
+  multiScatt->SetStepLimitType(fUseDistanceToBoundary);
+  pmanager->AddProcess(multiScatt, -1, 1, 1);
+
+  }
+
+  if(1){
+    G4eIonisation* ioni = new G4eIonisation;
+    ioni->SetStepFunction(.2,100*um);
+    pmanager->AddProcess(ioni,-1,2,2);
+  }
+
+  pmanager->AddProcess(new G4eBremsstrahlung,     -1, -3, 3);
+  pmanager->AddProcess(new G4eplusAnnihilation,    0, -1, 4);
+
+  return;
+}
+
+
+
+
+
+
+
+void Cube666_PhysicsList::muonPhysics(G4ProcessManager* pmanager){
+
+  if(1){
+    G4MuIonisation* ioni = new G4MuIonisation;
+    ioni->SetStepFunction(.2,50*um);
+    pmanager->AddProcess(new G4MuIonisation, -1,2,2);      
+  }
+
+  if(1){
+    G4MuMultipleScattering* msc = new G4MuMultipleScattering;
+    msc->AddEmModel(0,new G4WentzelVIModel);
+    pmanager->AddProcess(msc,-1,1,1);
+  }
+
+  if(1){
+    pmanager->AddProcess(new G4MuBremsstrahlung,-1, -3,3);
+    pmanager->AddProcess(new G4MuPairProduction,-1, -4,4); //mu- mu+ --> e-e+
+    pmanager->AddDiscreteProcess(new G4CoulombScattering);
+  }
+
+
+  if(0){
+    G4Decay* decay = new G4Decay;
+    pmanager->AddProcess(decay);
+    pmanager->SetProcessOrdering(decay,idxPostStep);
+    pmanager->SetProcessOrdering(decay,idxAtRest);
+  }
+
+  return;
+}
+
+
+
+
+
+
+
+
+
+
+void Cube666_PhysicsList::opPhotonPhysics(G4ProcessManager* pmanager){
+  
+
+#if RAYLEIGHSCATTERINGPROCESS
+  pmanager->AddDiscreteProcess(new G4OpRayleigh);
+#endif
+
+#if BOUNDARYPROCESS
+  pmanager->AddDiscreteProcess(new G4OpBoundaryProcess);
+#endif
+
+
+#if WAVELENGTHSHIFTINGPROCESS
+  pmanager->AddDiscreteProcess(new G4OpWLS);
+#endif
+
+  return;
+}
+
+
+
+
+void Cube666_PhysicsList::gammaPhysics(G4ProcessManager* pmanager){
+  
+  G4int turnOnProc=1;
+  G4double LivermoreHighEnergyLimit = GeV;
+  if(turnOnProc){
+    //code copied from G4EmLivermorePhysics::ConstructProcess()
+    if(1){
+      G4PhotoElectricEffect*         peEffect = new G4PhotoElectricEffect;
+      G4LivermorePhotoElectricModel* peModel  = new G4LivermorePhotoElectricModel;
+      peModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
+      peEffect->AddEmModel(0,peModel);
+      pmanager->AddDiscreteProcess(peEffect);
+    }
+
+    if(1){
+      G4ComptonScattering*     comptEffect = new G4ComptonScattering;
+      G4LivermoreComptonModel* comptModel  = new G4LivermoreComptonModel;
+      comptModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
+      comptEffect->AddEmModel(0,comptModel);
+      pmanager->AddDiscreteProcess(comptEffect);
+    }
+
+    if(1){
+      G4GammaConversion*               convEffect = new G4GammaConversion;
+      G4LivermoreGammaConversionModel* convModel  = new G4LivermoreGammaConversionModel;
+      convModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
+      convEffect->AddEmModel(0,convModel);
+      pmanager->AddDiscreteProcess(convEffect);
+    }
+
+    
+    if(0){
+      G4RayleighScattering*     rayleighScatt = new G4RayleighScattering;
+      G4LivermoreRayleighModel* rayleighModel = new G4LivermoreRayleighModel;
+      rayleighModel->SetHighEnergyLimit(LivermoreHighEnergyLimit);
+      rayleighScatt->AddEmModel(0,rayleighModel);
+      pmanager->AddDiscreteProcess(new G4RayleighScattering);
+    }
+  }
+  return;
+}
+
+
+
+
+void Cube666_PhysicsList::protonPhysics(G4ProcessManager* pmanager){
+
+  //in G4hionisation (valid for pi+-,K+-,proton,anti-proton,sigma+-,deuteron,triton,He3,alpha,generic ion)
+  //G4BetheBlochModel, G4BraggModel,G4UniversalFluctuation are automatically invoked
+
+  if(1){
+  G4hIonisation* hIoni = new G4hIonisation;
+  hIoni->SetStepFunction(.2,50*um);
+  pmanager->AddProcess(hIoni, -1,2,2);
+  }
+  
+
+  if(1) pmanager->AddProcess(new G4hBremsstrahlung, -1,-3,3);
+  //pmanager->AddProcess(new G4hPairProduction, -1,-4,4);    //<-- ????
+  if(0){
+    G4hMultipleScattering* multiScatt = new G4hMultipleScattering;
+    //multiScatt->AddEmModel(0, new G4UrbanMscModel90); //model for muons, hadrons, ions
+    multiScatt->SetStepLimitType(fUseDistanceToBoundary);
+    //pmanager->AddProcess(new G4hMultipleScattering,-1,1,1); 
+    pmanager->AddProcess(multiScatt,-1,1,1); 
+
+  }
+
+
+  if(1){
+    pmanager->AddProcess(new G4hMultipleScattering,-1, 1,1);
+  }
+
+
+
+  return;
+}
+
+
+
+
+
+
+void Cube666_PhysicsList::neutronPhysics(G4ProcessManager* pmanager){
+
+
+  if(1){	
+    //elastic scattering
+    G4HadronElasticProcess* neutronElastic      = new G4HadronElasticProcess;
+    G4NeutronHPElastic*     hpElasModel         = new G4NeutronHPElastic;
+    G4NeutronHPElasticData* neutronElasticData  = new G4NeutronHPElasticData;
+    neutronElastic->RegisterMe(hpElasModel);
+    neutronElastic->AddDataSet(neutronElasticData);
+    pmanager->AddDiscreteProcess(neutronElastic);
+  }
+  
+  if(1){
+    //inelastic scattering
+
+    G4NeutronInelasticProcess* neutronInelastic     = new G4NeutronInelasticProcess;
+    G4NeutronHPInelastic*      hpInelasModel        = new G4NeutronHPInelastic;
+    //G4NeutronHPorLEInelastic*      hpInelasModel    = new G4NeutronHPorLEInelastic;
+    G4NeutronHPInelasticData*  neutronInelasticData = new G4NeutronHPInelasticData;
+    neutronInelastic->RegisterMe(hpInelasModel);
+    neutronInelastic->AddDataSet(neutronInelasticData);
+    pmanager->AddDiscreteProcess(neutronInelastic);
+
+    hpInelasModel->SetVerboseLevel(VERBOSE);
+  }
+
+
+  if(1){
+    //neutron capture
+    G4HadronCaptureProcess* neutronCapture      = new G4HadronCaptureProcess;
+    G4NeutronHPCapture*     neutronCaptureModel = new G4NeutronHPCapture;
+    G4NeutronHPCaptureData* neutronCaptureData  = new G4NeutronHPCaptureData;
+    neutronCapture->RegisterMe(neutronCaptureModel);
+    neutronCapture->AddDataSet(neutronCaptureData);
+    pmanager->AddDiscreteProcess(neutronCapture);
+  }
+
+
+  return;
+}
+
+
+void Cube666_PhysicsList::hadronPhysics(G4ProcessManager* pmanager){
+  
+  pmanager->AddProcess(new G4hMultipleScattering,-1, 1,1);
+  pmanager->AddProcess(new G4hIonisation,        -1, 2,2);
+  return;
+}
+
+
+
+
+
+
+
+void Cube666_PhysicsList::ionPhysics(G4ProcessManager* pmanager){
+  
+  if(1){
+    G4ionIonisation* ionProc = new G4ionIonisation; //for particles with Q > 1e
+    ionProc->SetEmModel(new G4IonParametrisedLossModel);
+    ionProc->SetStepFunction(.1,20*um);
+    pmanager->AddProcess(ionProc, -1,2,2);
+  }
+  //the 2 following models are automatically invoked by G4hIonisation process
+  //furthermore G4UniversalFluctuation is also automatically invoked
+
+  //ionProc->SetEmModel(new G4BetheBlochModel,1); //for particles with Ekin > 2 MeV
+  //ionProc->SetEmModel(new G4BraggIonModel,2);   //Ekin < 2MeV --> see physicsReferenceManual for GEANT4, chap. 11
+
+  if(1){
+    G4hMultipleScattering* multiScatt = new G4hMultipleScattering;
+    //multiScatt->AddEmModel(0, new G4UrbanMscModel90); //model for muons, hadrons, ions
+    multiScatt->SetStepLimitType(fUseDistanceToBoundary);    
+    pmanager->AddProcess(new G4hMultipleScattering,-1,1,1); 
+  }
+ 
+
+  if(0){
+    pmanager->AddProcess(new G4NuclearStopping(),-1, 3, -1);
+  }
+
+
+  return;
+}
+
+
+
+
+
+void Cube666_PhysicsList::addScintillation(){
+
+
+  cout<<__FILE__<<"::"<<__FUNCTION__<<" "<<endl;
+
+#define SCINTILLATIONPROCESS true
+
+#if SCINTILLATIONPROCESS
+  
+  theParticleIterator->reset();
+
+  while( (*theParticleIterator)() ){
+
+    G4ParticleDefinition* particle = theParticleIterator->value();
+    G4String          particleName = particle->GetParticleName();
+
+    if(particleName == "opticalphoton") continue;
+
+    G4ProcessManager*     pmanager = particle->GetProcessManager();
+    
+    Cube666_Scintillation* fScintProcess = new Cube666_Scintillation("Cube666_Scint");
+    pmanager->AddDiscreteProcess(fScintProcess);
+    pmanager->SetProcessOrderingToLast(fScintProcess,idxAtRest);
+    pmanager->SetProcessOrderingToLast(fScintProcess,idxPostStep);
+
+    //cout<<" particle -- "<<particleName<<endl;
+
+  }
+
+#endif //SCINTILLATIONPROCESS
+
+  cout<<__FILE__<<"::"<<__FUNCTION__<<" end "<<endl;
+
+  return;
+}

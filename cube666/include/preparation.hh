@@ -1,0 +1,637 @@
+
+#ifndef _PREPARATION_
+#define _PREPARATION_ 1
+
+
+
+#include "TMath.h"
+#include "globals.hh"
+#include "G4ThreeVector.hh"
+#include "TVector2.h"
+#include <vector>
+
+#include "SystemOfUnits.h"
+//#include "/Users/sdiluise/CLHEP/x86_64-mac106-gcc42-opt/include/CLHEP/Units/defs.h"
+
+
+using namespace std;
+
+using namespace CLHEP;
+
+//be careful when using the following global variables in c++ code !
+//-->why ?
+//-->e.g.
+//#define  AB  a*b
+//in c++, you do :  double d = c/AB
+//what you expect c++ to do is  : double d = c/(a*b)
+//but what c++ actually does is : double d = c/a*b   <--- !!!
+
+//--> so:
+//either wrap the value after variable names in #define ... syntax with parentheses,
+//especially when numeric operators involve
+
+//or copy these variables to local varibales before using them
+//e.g. : double AB_prime = AB; double d = c/AB_prime;
+
+const string _HOME_ = "/Users/sdiluise";
+#define ARDM_OUTPUT_TREE_DIR_DEFAULT ( _HOME_ + "/cube666/output/outputTree/")
+
+#define CUBE666 0
+
+#define VERBOSE 0
+
+#define DEFAULTVALUE         -11111111
+
+//new geometry
+#define WORLD_HALF_SIZE       4100   *mm  
+
+
+//dimension of the GAr + LAr volume above the cathode grid
+#define CUBE666_HALF_X  3*m 
+#define CUBE666_HALF_Y  3*m
+#define CUBE666_LAR_AND_GAR_VOL_HALF_HEIGHT 3*m
+
+
+//there's still 2m LAr underneath the cathode grid
+#define CUBE666_DISTANCE_CATHODE_GRID_TO_PMT_TIP 1*m
+#define CUBE666_DISTANCE_TANK_BOTTOM_TO_PMT_TIP   1*m
+
+
+#define CUBE666_HALF_Z  (CUBE666_LAR_AND_GAR_VOL_HALF_HEIGHT+(CUBE666_DISTANCE_CATHODE_GRID_TO_PMT_TIP+CUBE666_DISTANCE_TANK_BOTTOM_TO_PMT_TIP)/2)
+
+#define CUBE666_HALF_THICKNESS 5*mm  //arbitrary number
+
+
+//dimension of the tank itself
+#define CUBE666_WALL_HALF_X (CUBE666_HALF_X + 2*CUBE666_HALF_THICKNESS)
+#define CUBE666_WALL_HALF_Y (CUBE666_HALF_Y + 2*CUBE666_HALF_THICKNESS)
+#define CUBE666_WALL_HALF_Z (CUBE666_HALF_Z + 2*CUBE666_HALF_THICKNESS)
+
+
+//position of the tank
+
+#define CUBE666_POS_X 0
+#define CUBE666_POS_Y 0
+#define CUBE666_POS_Z 0
+
+
+
+//how thick the GAr layer is
+#define CUBE666_GARCOL_HALF_X CUBE666_HALF_X
+#define CUBE666_GARCOL_HALF_Y CUBE666_HALF_Y
+#define CUBE666_GARCOL_HALF_HEIGHT  1*cm
+#define CUBE666_GARCOL_HALF_Z CUBE666_GARCOL_HALF_HEIGHT
+
+#define CUBE666_GARCOL_POS_X 0
+#define CUBE666_GARCOL_POS_Y 0
+#define CUBE666_GARCOL_POS_Z (CUBE666_POS_Z + CUBE666_HALF_Z-CUBE666_GARCOL_HALF_HEIGHT)
+
+
+//how high the LAr column is
+#define CUBE666_LARCOL_HALF_X CUBE666_HALF_X
+#define CUBE666_LARCOL_HALF_Y CUBE666_HALF_Y
+#define CUBE666_LARCOL_HALF_HEIGHT  (CUBE666_POS_Z + CUBE666_HALF_Z-CUBE666_GARCOL_HALF_HEIGHT)
+#define CUBE666_LARCOL_HALF_Z CUBE666_LARCOL_HALF_HEIGHT
+
+#define CUBE666_LARCOL_POS_X 0
+#define CUBE666_LARCOL_POS_Y 0
+#define CUBE666_LARCOL_POS_Z (CUBE666_POS_Z-(CUBE666_HALF_Z-CUBE666_LARCOL_HALF_HEIGHT))
+
+
+
+//dimension of cathode grid
+#define CUBE666_CATHODE_GRID 0
+#define CUBE666_CATHODE_WIRE_INNER_RADIUS  0*mm
+#define CUBE666_CATHODE_WIRE_OUTER_RADIUS  2.5*mm
+#define CUBE666_CATHODE_WIRE_PITCH_X  (5*cm)
+#define CUBE666_CATHODE_WIRE_PITCH_Y  (5*cm)
+#define CUBE666_CATHODE_WIRE_POS_Z    (CUBE666_POS_Z-(CUBE666_HALF_Z-CUBE666_DISTANCE_CATHODE_GRID_TO_PMT_TIP-CUBE666_DISTANCE_TANK_BOTTOM_TO_PMT_TIP))
+
+
+
+//some space between the PMTs and the wall
+#define CUBE666_DISTANCE_PMT_CENTER_TO_TANK_WALL_X .25*m
+#define CUBE666_DISTANCE_PMT_CENTER_TO_TANK_WALL_Y .25*m
+
+
+
+//distance between 2 PMTs
+#define CUBE666_PMT_PITCH_X (.5*m)
+#define CUBE666_PMT_PITCH_Y (.5*m)
+
+
+
+//number of PMTs
+#define CUBE666_NPMT_X ((int)(2*(CUBE666_HALF_X-CUBE666_DISTANCE_PMT_CENTER_TO_TANK_WALL_X)/CUBE666_PMT_PITCH_X)+1)
+#define CUBE666_NPMT_Y ((int)(2*(CUBE666_HALF_Y-CUBE666_DISTANCE_PMT_CENTER_TO_TANK_WALL_Y)/CUBE666_PMT_PITCH_Y)+1)
+
+
+//#define NPMT (CUBE666_NPMT_X * CUBE666_NPMT_Y)
+#define NPMT 144
+
+
+#define CUBE666_REFLECTIVITY_LAR_TANK 0. *0.01
+#define CUBE666_REFLECTIVITY_GAR_TANK 0. *0.01
+
+
+#define CUBE666_REFLECTIVITY_OF_LAR_SURFACE 100. *0.01
+
+
+#define CUBE666_REFLECTIVITY_OF_PMTCOAT     100. *0.01
+
+#define CUBE666_REFLECTIVITY_OF_PMT_BACKSIDE       0.  *.01
+
+
+
+
+
+
+
+//PMTs
+
+//// 2014 feb. 6th 
+//// try to approximate the shape of the PMT more accurately
+//// the PMT will be approximated by a "union" of geo. shapes
+//// --> see sosuke's drawings for the approximation of the PMTs
+//// 1. a cylinder in the middle
+//// 2. on top and bottom of the cylinder are 2 spherical parts with same curvature, each with opening angle ~ 50 degrees
+//// 3. connecting to the btm (spherical) part is another cylinder (here called btm_tube), which connects the PMT with PMT base
+//// 4. the center of the middle cylinder is taken to be the PMT center
+
+
+
+//PMT's top spherical part
+#define APPROX_PMT_SPHERICAL_PART_INNER_RADIUS (131 *mm )
+#define APPROX_PMT_THICKNESS    (2   *mm) //arbitrary for the time being
+#define APPROX_PMT_SPHERICAL_PART_OUTER_RADIUS (APPROX_PMT_SPHERICAL_PART_INNER_RADIUS + APPROX_PMT_THICKNESS)
+#define APPROX_PMT_SPHERICAL_PART_OPENING_ANGLE (2*50 *deg)
+#define APPROX_PMT_ACTIVE_RANGE_OPENING_ANGLE (2*46.5 *deg)
+
+#define APPROX_PMT_SPHERICAL_PART_HEIGHT (APPROX_PMT_SPHERICAL_PART_OUTER_RADIUS - APPROX_PMT_SPHERICAL_PART_INNER_RADIUS*cos(APPROX_PMT_SPHERICAL_PART_OPENING_ANGLE/2))
+
+#define APPROX_PMT_TOP_SPHERICAL_PART_HEIGHT APPROX_PMT_SPHERICAL_PART_HEIGHT
+
+
+//PMT's middle cylinder
+#define APPROX_PMT_MIDDLE_CYLINDER_INNER_RADIUS (APPROX_PMT_SPHERICAL_PART_INNER_RADIUS*sin(APPROX_PMT_SPHERICAL_PART_OPENING_ANGLE/2))
+#define APPROX_PMT_MIDDLE_CYLINDER_OUTER_RADIUS (APPROX_PMT_MIDDLE_CYLINDER_INNER_RADIUS + APPROX_PMT_THICKNESS)
+#define APPROX_PMT_MIDDLE_CYLINDER_HALF_HEIGHT (27 *mm)
+
+
+
+//tube connecting the btm spherical part with PMTbase
+#define APPROX_PMT_BTM_TUBE_INNER_RADIUS (42.25 *mm)
+#define APPROX_PMT_BTM_TUBE_OUTER_RADIUS (APPROX_PMT_BTM_TUBE_INNER_RADIUS + APPROX_PMT_THICKNESS)
+#define APPROX_PMT_BTM_TUBE_HALF_HEIGHT  (36    *mm)
+#define APPROX_PMT_BTM_SPHERE_HOLE_OPENING_ANGLE (2*TMath::ASin(APPROX_PMT_BTM_TUBE_INNER_RADIUS / APPROX_PMT_SPHERICAL_PART_OUTER_RADIUS) / TMath::Pi() * 180 *deg )
+//#define APPROX_PMT_BTM_SPHERE_HOLE_OPENING_ANGLE  <-- it's about 18.8 degrees
+
+
+
+
+
+//PMT's  btm spherical part
+#define APPROX_PMT_BTM_SPHERICAL_PART_HEIGHT ( APPROX_PMT_SPHERICAL_PART_OUTER_RADIUS*cos(APPROX_PMT_BTM_SPHERE_HOLE_OPENING_ANGLE/2) - APPROX_PMT_SPHERICAL_PART_INNER_RADIUS*cos(APPROX_PMT_SPHERICAL_PART_OPENING_ANGLE/2) )
+
+
+
+
+//PMT_CENTER = center of the cylinder in the middle, between 2 spherical parts
+#define APPROX_PMT_DISTANCE_PMT_CENTER_TO_SPHERE_CENTER (fabs((APPROX_PMT_SPHERICAL_PART_INNER_RADIUS * cos(APPROX_PMT_SPHERICAL_PART_OPENING_ANGLE/2) - APPROX_PMT_MIDDLE_CYLINDER_HALF_HEIGHT ) ) )
+#define APPROX_PMT_DISTANCE_PMT_CENTER_TO_TOP_SPHERE_CENTER APPROX_PMT_DISTANCE_PMT_CENTER_TO_SPHERE_CENTER
+#define APPROX_PMT_DISTANCE_PMT_CENTER_TO_BTM_SPHERE_CENTER APPROX_PMT_DISTANCE_PMT_CENTER_TO_SPHERE_CENTER
+#define APPROX_PMT_DISTANCE_PMT_CENTER_TO_BTM_TUBE_CENTER   (APPROX_PMT_MIDDLE_CYLINDER_HALF_HEIGHT + APPROX_PMT_BTM_SPHERICAL_PART_HEIGHT + APPROX_PMT_BTM_TUBE_HALF_HEIGHT)
+
+
+
+#define APPROX_PMT_DISTANCE_PMT_CENTER_TO_PMT_TIP (APPROX_PMT_MIDDLE_CYLINDER_HALF_HEIGHT + APPROX_PMT_TOP_SPHERICAL_PART_HEIGHT)
+
+
+
+
+
+//z-position of the PMTs
+#define CUBE666_PMT_POS_Z (CUBE666_POS_Z-(CUBE666_HALF_Z-CUBE666_DISTANCE_TANK_BOTTOM_TO_PMT_TIP - APPROX_PMT_DISTANCE_PMT_CENTER_TO_PMT_TIP))
+#define CUBE666_PMT_POS_Z_LARCOL (CUBE666_PMT_POS_Z-CUBE666_LARCOL_POS_Z)
+
+
+
+
+
+
+//dimension of PMTbase
+#define APPROX_PMT_BASE_RADIUS 30  *mm
+#define APPROX_PMT_BASE_HALF_THICKNESS 1.6 *mm
+#define APPROX_PMT_DISTANCE_LOWER_EDGE_OF_PMT_TUBE_TO_PMT_BASE_CENTER 5 *mm
+#define APPROX_PMT_DISTANCE_PMT_CENTER_TO_PMT_BASE_CENTER (APPROX_PMT_MIDDLE_CYLINDER_HALF_HEIGHT + APPROX_PMT_BTM_SPHERICAL_PART_HEIGHT + 2*APPROX_PMT_BTM_TUBE_HALF_HEIGHT + APPROX_PMT_DISTANCE_LOWER_EDGE_OF_PMT_TUBE_TO_PMT_BASE_CENTER)
+
+#define APPROX_PMT_BASE_POS_Z (CUBE666_PMT_POS_Z - APPROX_PMT_DISTANCE_PMT_CENTER_TO_PMT_BASE_CENTER)
+#define APPROX_PMT_BASE_POS_Z_LARCOL (APPROX_PMT_BASE_POS_Z - CUBE666_LARCOL_POS_Z)
+
+
+
+
+
+
+//**new** : implemented on dec. 18th 2013, 8:50 am
+//--> *** modified on 2014 mar 19th , 10:10 am ***
+//parameters for PMT cathode
+//instead of setting the pmt glass layer as sensitive detector,
+//now set the pmt cathode as sensitive detector !
+//
+//if we set the pmt glass layer as sensitive detector,
+//we have to kill the photon immediately whenever it reaches the glass layer,
+//this would mean that no total internal reflection on pmtGlassLayer -- pmtCoating surface is possible,
+//whereas in reality, this can happen multiple times before the photon penetrates the glass layer to reach the pmt cathode.
+//dunno if this (total internal reflection within the pmtCoating) makes a big difference, but still, 
+//just to be careful !
+
+
+//// mar. 19th 2014, 10:10 am
+#define APPROX_PMT_CATHODE_OUTER_RADIUS APPROX_PMT_SPHERICAL_PART_INNER_RADIUS
+#define APPROX_PMT_CATHODE_THICKNESS    (0.001 * mm)
+#define APPROX_PMT_CATHODE_INNER_RADIUS (APPROX_PMT_CATHODE_OUTER_RADIUS - APPROX_PMT_CATHODE_THICKNESS)
+#define APPROX_PMT_CATHODE_OPENING_ANGLE APPROX_PMT_ACTIVE_RANGE_OPENING_ANGLE
+#define APPROX_PMT_CATHODE_ACTIVE_RANGE (APPROX_PMT_CATHODE_OPENING_ANGLE/2)  //46.5*deg
+
+
+#define APPROX_PMT_CATHODE_POS_Z (CUBE666_PMT_POS_Z - APPROX_PMT_DISTANCE_PMT_CENTER_TO_SPHERE_CENTER)
+#define APPROX_PMT_CATHODE_POS_Z_LARCOL (APPROX_PMT_CATHODE_POS_Z - CUBE666_LARCOL_POS_Z)
+
+
+
+
+#define WLS_MEAN_ABSORPTION_LENGTH (.01 *mm)      
+#define WLS_THICKNESS_100_PERCENT_CONVERSION_EFFICIENCY (0.2 *mm)
+
+
+#define PMT_CONV_EFF 10000 * 0.0001
+#define PMT_COATING_THICKNESS getWLSThickness(PMT_CONV_EFF)
+#define PMT_COATING_INNER_RADIUS APPROX_PMT_SPHERICAL_PART_OUTER_RADIUS
+#define PMT_COATING_OUTER_RADIUS (PMT_COATING_INNER_RADIUS + PMT_COATING_THICKNESS)
+#define PMT_COATING_OPENING_ANGLE APPROX_PMT_SPHERICAL_PART_OPENING_ANGLE
+#define PMT_COATING_POS_Z APPROX_PMT_CATHODE_POS_Z
+#define PMT_COATING_POS_Z_LARCOL (PMT_COATING_POS_Z - CUBE666_LARCOL_POS_Z)
+
+
+
+
+
+
+
+
+#define PHOTON_ENERGY_THRESHOLD 6.*eV  //if photon energy is larger than this threshold --> it won't be detected !
+
+
+//universal constants
+#define PI                   TMath::Pi()
+#define PIOVER3              PI/3
+
+#define BOILING_POINT_ARGON  87.          *kelvin 
+#define LAR_RHO              1390.        //kg/m3                      //LAr mass density
+#define GAR_RHO              1.76         //kg/m3                      //at standard condition (273 K, 1 bar)
+
+#define BOLTZMAN_K           TMath::K()   //joule /kelvin              //boltzmann constant
+#define LAR_KT               2.18e-9      //m2/newton                  //LAr isothermal compressibility
+#define PLANCK_H             TMath::H()   *kg*m2/s
+#define LIGHTSPEED           TMath::C()   *m/s
+
+#define KE_LAR               1./6/PI*BOLTZMAN_K*BOILING_POINT_ARGON*LAR_KT*LAR_RHO*LAR_RHO
+//KE_LAR is used in Cube666_DetectorConstruction::RayleighAttenuationLength(..)
+
+
+
+
+//polycarbonate's parameters
+#define POLYCARBONATE_DENSITY  1.20 *g/cm3  //<-- wikipedia : rho = 1.20 -- 1.22 g/cm3
+#define POLYCARBONATE_REFINDEX 1.584        //<-- wikipedia : refIndex = 1.584 -- 1.586; for the time being: const refIndex
+
+
+//polyethylene's parameters
+#define POLYETHYLENE_DENSITY   0.940 *g/cm3
+
+
+
+#define TIMESAMPLE           4 *ns 
+#define NTIMESAMPLE          2048
+
+
+#define PARTICLE_ENERGY  (9.686 *eV)
+
+
+#define PRIMARY_PHOTON_MEAN_E     PARTICLE_ENERGY
+#define PRIMARY_PHOTON_SIGMA_E    (.5 *eV)           //for the time being, test with arbitrary sigma !
+
+
+#define SECONDARY_PHOTON_MEAN_E   (2.95 *eV)         // <--> ~ 420 nm 
+#define SECONDARY_PHOTON_SIGMA_E  (.5 *eV)           //for the time being, test with arbitrary sigma !
+
+
+//numerical values taken from SVN code:
+//for scintillation process
+
+//drift field
+#define ELECTRIC_FIELD_STRENGTH 0*volt/cm
+
+#define DIELECTRIC_CONSTANT_GAR 1.
+#define DIELECTRIC_CONSTANT_LAR 1.4
+
+
+//extraction field
+#define EXTRACTION_FIELD_STRENGTH 4*kilovolt/cm
+
+
+#define W_GAMMA_LAR              (19.1 *eV)  //average energy needed to produce an Ar-excited state with emission of a photon
+#define W0_LAR                   (23.6 *eV)  //average energy needed to create an e-ion pair.
+
+
+//w-values for GAr may depend on the pressure !
+//for alpha particles with Ekin > 1 MeV
+#define W_GAMMA_GAR 1000*eV
+#define W_ION_GAR                (26.4 *eV)
+
+// #define W_GAMMA                  19.1 *eV  
+// #define W0                       23.6 *eV  
+
+#define W_GAMMA                  W_GAMMA_LAR
+#define W0                       W0_LAR
+
+
+//#define CX                       1856 *cm/kilovolt // <-- "1856" is taken from WARP proposal, used in box model
+//#define CX                       (1856 *kilovolt/cm) // <-- kilovolt !!????
+//#define CX                       (1856 *volt/cm) // <-- "1856" is taken from WARP proposal, used in box model
+#define CX                       (840*volt/cm) //<-- value taken from "recombination of e-ion pairs in LAr and LX"
+//J.Thomas and D.I.Imel, phys. rev. A36, vol. 2, july 15, 1987
+
+
+//for nuclear quenching according to Lindhard
+#define A_LINDHARD           .1406  
+#define ALPHA_LINDHARD       .228
+
+
+
+//bi-excitonic quenching in neutron-like events
+#define Q_BIEXCITONIC        .6
+
+
+
+
+//for calculating quenching factor for electron-like evetns
+#define QUENCHING_ELECTRON_LIKE_K  (0.0486 *kilovolt/MeV)
+#define QUENCHING_ELECTRON_LIKE_A  0.8
+
+
+
+
+
+//attenuation length due to impurities
+//lambda = alpha*E/rho                  <-- in cm
+//alpha = (0.15 +- 0.03)cm2 = const     <-- cm2
+//E     = field strength                <-- kV/cm
+//rho   = impurity concentration        <-- in ppm (oxygen equivalent)
+#define ATTENUATION_LENGTH_IMPURITY_ALPHA           .15 
+#define IMPURITY_CONCENTRATION_OXYGEN_EQUIVALENT    0.0000001  //for the time being, set it to very low ! 
+#define ATTENUATION_LENGTH_IMPURITY (ATTENUATION_LENGTH_IMPURITY_ALPHA*ELECTRIC_FIELD_STRENGTH/(kilovolt/cm)/IMPURITY_CONCENTRATION_OXYGEN_EQUIVALENT)*cm
+
+
+
+
+
+
+//drift velocity of electrons in LAr
+//from paper : "drift velocity of free electrons in LAr"
+//W.Walkowiak, nucl. instr. meth. A 449, 288-294, 2000
+//
+//E : field strength
+//T : temperature
+//
+//v_drift(E,T) = (P1*(T-T0) + 1)*(P3*E*ln(1+P4/E)+P5*E^P6)+P2*(T-T0)
+//
+//T0 = 90.371 K = const
+//P1 = -0.01481 +- 0.00095 K^-1
+//P2 = -0.0075  +- 0.0028  K^-1
+//P3 =  0.141   +- 0.023   (kV/cm)^-1
+//P4 = 12.4     +- 2.7     kV/cm
+//P5 =  1.627   +- 0.078   (kV/cm)^-P6 
+//P6 =  0.3147  +- 0.021   
+//
+//[v_drift] = mm/us
+//[E]       = kV/cm
+//[T]       = K
+//
+
+
+#define ELECTRON_V_DRIFT_IN_LAR_T0  (90.371*kelvin)
+#define ELECTRON_V_DRIFT_IN_LAR_P1  (-0.01481/kelvin)
+#define ELECTRON_V_DRIFT_IN_LAR_P2  (-0.0075 /kelvin)
+#define ELECTRON_V_DRIFT_IN_LAR_P3  (0.141*cm/kilovolt)
+#define ELECTRON_V_DRIFT_IN_LAR_P4  (12.4*kilovolt/cm)
+#define ELECTRON_V_DRIFT_IN_LAR_P6  0.317
+#define ELECTRON_V_DRIFT_IN_LAR_P5  (1.627*pow(kilovolt/cm,-ELECTRON_V_DRIFT_IN_LAR_P6))
+
+#define ELECTRON_V_DRIFT_IN_LAR     ((ELECTRON_V_DRIFT_IN_LAR_P1*(BOILING_POINT_ARGON-ELECTRON_V_DRIFT_IN_LAR_T0)+1)*(ELECTRON_V_DRIFT_IN_LAR_P3*(ELECTRIC_FIELD_STRENGTH)*log(1+ELECTRON_V_DRIFT_IN_LAR_P4/(ELECTRIC_FIELD_STRENGTH))+ELECTRON_V_DRIFT_IN_LAR_P5*pow(ELECTRIC_FIELD_STRENGTH,ELECTRON_V_DRIFT_IN_LAR_P6))+ELECTRON_V_DRIFT_IN_LAR_P2*(BOILING_POINT_ARGON-ELECTRON_V_DRIFT_IN_LAR_T0))
+
+
+
+
+//diffusion of electron cloud
+//from chapter 6.3 in W.R.Leo
+//"techniques for nuclear and particle physics experiments"
+//
+//<-- applied for gas
+//<-- applicable for liquid ??
+//
+//1D : sigma = sqrt(2*D*t)
+//D = diffusion coefficient
+//t = drift time
+//
+//3D : sigma = sqrt(6*D*t)
+//
+#define ELECTRON_CLOUD_DIFFUSION_COEFFICIENT (4.8*cm2/s) //<-- taken from Lilian Kaufmann's thesis
+
+
+
+
+
+
+//ratio fast/(fast+slow)
+#define SCINTILLATION_YIELD_RATIO  .75 //for neutron
+
+#define ELECTRONEXCITATIONRATIO    .23
+#define NEUTRONEXCITATIONRATIO     .75
+
+#define PMT_QUANTUM_EFFICIENCY     1.
+//#define PMT_QUANTUM_EFFICIENCY     .18
+
+
+#define REFLECTIVITY_OF_TANK               0.  *.01
+
+//no absorption on liquid surface
+#define REFLECTIVITY_OF_LAR_SURFACE        100 *.01
+
+//the "inner" side of PMT
+#define REFLECTIVITY_OF_PMT_BACKSIDE       0.  *.01
+
+//the outer side facing WLS layer of PMT
+//optical photons will be killed whenever they arrive at PMTs' surfaces
+//so the reflectivity of the optical surface between the PMT and PMTCoat is not important
+#define REFLECTIVITY_OF_PMT_FRONTSIDE      100 *.01
+
+//no absorption on the surface between LAr/GAr and PMTCoat
+#define REFLECTIVITY_OF_PMTCOAT            100 *.01
+
+
+#define REFLECTIVITY_OF_CATHODE_GRID 5000*0.0001
+
+
+
+//scintillation process in LAr
+
+#define LAR_SCINTILLATIONYIELD           40e3/MeV
+#define LAR_RESOLUTIONSCALE              1.
+#define LAR_FASTTIMECONSTANT             7.0 *ns
+#define LAR_SLOWTIMECONSTANT             1.5 *microsecond
+#define LAR_FASTSCINTILLATIONRISETIME    2.0 *ns   //for the time being : arbitrary value !!
+#define LAR_SLOWSCINTILLATIONRISETIME    2.0 *ns   //for the time being : arbitrary value !!
+#define LAR_YIELDRATIO                   0.23      //place holder
+#define LAR_YIELDRATIO_ELECTRON          0.23                   
+#define LAR_EXCITATIONRATIO_ELECTRON     0.23
+#define LAR_EXCITATIONRATIO_NEUTRON      0.75
+
+
+//scintillation process in GAr
+
+//for GAr, values of the parameters are for the time being only place holders !!
+//check the correct values !!!
+#define GAR_SCINTILLATIONYIELD           40e3/MeV  //not needed for the time being
+#define GAR_RESOLUTIONSCALE              1.
+#define GAR_FASTTIMECONSTANT 7*ns
+#define GAR_SLOWTIMECONSTANT 3500*ns
+#define GAR_FASTSCINTILLATIONRISETIME    2.0 *ns   //for the time being : arbitrary value !!
+#define GAR_SLOWSCINTILLATIONRISETIME    2.0 *ns   //for the time being : arbitrary value !!
+#define GAR_YIELDRATIO                   0.23      //fast/slow component -- place holder
+#define GAR_YIELDRATIO_ELECTRON          0.23                   
+#define GAR_YIELDRATIO_ALPHA 0.4
+#define GAR_EXCITATIONRATIO_ELECTRON     0.23
+#define GAR_EXCITATIONRATIO_NEUTRON      0.75
+
+
+
+///////////////////////////////////////////////////////////////
+/////////////////////////TEST//////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+//normal ! standard branches : total number of photons detected by all PMT in array, time sample, ...
+#define TEST_BRANCH0 0
+
+//add:
+//total number of detected photons by 1 PMT in 1 event
+//total number of photons detected by 1 PMT in 1 event in 1 timesample 
+#define TEST_BRANCH00 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//some common methods
+
+// extern "C++" const double TOP_CONV_EFF[NTOPPMT];
+// extern "C++" const double BOTTOM_CONV_EFF[NBOTTOMPMT];
+
+extern "C++" vector<TVector2>      setPMTVector2D();
+extern "C++" vector<G4ThreeVector> setPMTVector();
+extern "C++" G4ThreeVector         sphericalDistribution(const char* direction="");
+extern "C++" G4ThreeVector         randomPos2D(G4double radius,G4double z);
+extern "C++" G4ThreeVector         polarizationVec(G4ThreeVector perpTo); //generate a vector perpendicular to perpTo
+
+extern "C++" vector<G4ThreeVector> setGridWireVector(const char* xyAxis,vector<double>& wireHalfLength,
+						     double plateInnerR, double wirePitch, double wireOuterR);
+
+extern "C++" double                getWLSThickness(double convEff);
+
+
+//extern "C++" vector<vector<string> > readTextfile_string(string filename,char delimiter=',');
+//extern "C++" vector<vector<double> > readTextfile_float(string filename,char delimiter=',');
+
+//vector<vector<string> > readTextfile_string(string filename,char delimiter=',');
+//vector<vector<double> > readTextfile_float(string filename,char delimiter=',');
+
+
+
+
+
+//g++ requires template header in the same file as implementation !!
+//--> define the template inside .hh file !
+template<class T> void copy1DArray(T* sourceArray,T* targetArray, int nentries){
+
+  for(int i=0;i<nentries;i++) targetArray[i] = sourceArray[i];
+  return;
+}
+
+
+template<class T> void copy1DArray(vector<T> sourceArray,T* targetArray, int nentries){
+
+  int n1 = sourceArray.size();
+  nentries = (n1>nentries)?nentries:n1;
+  for(int i=0;i<nentries;i++) targetArray[i] = sourceArray[i];
+  return;
+}
+
+
+template<class T> void copy2DArray(T** sourceArray,T** targetArray, int nentries1, int nentries2){
+
+  for(int i=0;i<nentries1;i++) copy1DArray<T>(sourceArray[i],targetArray[i],nentries2);
+  return;
+}
+
+
+
+template<class T> void reset1DArray(T* array, int nentries, T defaultValue){
+  for(int i=0;i<nentries;i++) array[i] = defaultValue;
+  return;
+}
+
+
+
+template<class T> void reset2DArray(T** array, int nentries1, int nentries2, T defaultValue){
+  for(int i1=0;i1<nentries1;i1++) 
+    for(int i2=0;i2<nentries2;i2++) 
+      array[i1][i2] = defaultValue;
+  return;
+}
+
+
+
+
+
+
+#endif //_PREPARATION_

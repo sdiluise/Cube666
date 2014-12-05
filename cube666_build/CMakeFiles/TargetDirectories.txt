@@ -1,0 +1,2 @@
+/Users/sdiluise/cube666/cube666_build/CMakeFiles/Cube666.dir
+/Users/sdiluise/cube666/cube666_build/CMakeFiles/test.dir

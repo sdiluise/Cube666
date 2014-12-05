@@ -1,0 +1,18 @@
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: /Users/sdiluise/cube666/cube666_build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec797665227/fast"
+No such file or directory
+Generator: execution of make failed. Make command was: /usr/bin/gmake "cmTryCompileExec797665227/fast"
+
+
+
+Detecting CXX compiler ABI info failed to compile with the following output:
+Change Dir: /Users/sdiluise/cube666/cube666_build/CMakeFiles/CMakeTmp
+
+Run Build Command:/usr/bin/gmake "cmTryCompileExec3351871579/fast"
+No such file or directory
+Generator: execution of make failed. Make command was: /usr/bin/gmake "cmTryCompileExec3351871579/fast"
+
+
+

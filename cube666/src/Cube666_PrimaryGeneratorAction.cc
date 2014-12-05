@@ -1,0 +1,123 @@
+#include "Cube666_PrimaryGeneratorAction.hh"
+#include "G4ParticleTable.hh"
+#include "G4ParticleDefinition.hh"
+#include "Randomize.hh"
+#include "Cube666_Analysis.hh"
+
+
+#define DEBUG false
+#if DEBUG
+#define D(x) cout<<x<<endl;
+#else
+#define D(x)
+#endif
+
+
+
+Cube666_PrimaryGeneratorAction* Cube666_PrimaryGeneratorAction::fInstance = 0;
+
+
+Cube666_PrimaryGeneratorAction::Cube666_PrimaryGeneratorAction()
+  :G4VUserPrimaryGeneratorAction(),
+   fParticleGun(0)
+{
+
+  D(__FILE__<<"::"<<__FUNCTION__);
+
+  fParticleGun = new G4ParticleGun(1);
+
+  fParticleSource = new G4GeneralParticleSource;
+  //fParticleSource->SetNumberOfParticles();
+
+  G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
+  //G4ParticleDefinition* particle = particleTable->FindParticle("gamma");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("opticalphoton");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("e+");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("e-");
+  G4ParticleDefinition* particle = particleTable->FindParticle("neutron");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("alpha");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("proton");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("mu+");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("mu-");
+  //G4ParticleDefinition* particle = particleTable->FindParticle("deuteron");
+
+  fParticleGun->SetParticleDefinition(particle);
+  fParticleSource->SetParticleDefinition(particle);
+
+}
+
+
+Cube666_PrimaryGeneratorAction::~Cube666_PrimaryGeneratorAction(){
+  if(!fParticleGun)    delete fParticleGun;
+  if(!fParticleSource) delete fParticleSource;
+}
+
+
+void Cube666_PrimaryGeneratorAction::GeneratePrimaries(G4Event* event){
+
+
+  D(__FILE__<<"::"<<__FUNCTION__);
+
+  //fParticleSource->SetParticleMomentumDirection(sphericalDistribution(fMomentumDirection));
+  //fParticleSource->SetParticleMomentumDirection(G4ThreeVector(0.,0.,1.));
+  //fParticleSource->SetParticleMomentumDirection(G4ThreeVector(TESTDIRX,TESTDIRY,TESTDIRZ));
+  //fParticleSource->SetParticleEnergy(fParticleEnergy); //128nm
+
+  G4ThreeVector position= G4ThreeVector(0.2*mm,0.2*mm,0.2*mm);
+  //overriden via datacard if any
+  fParticleSource->SetParticlePosition(position);
+
+  cout<<"fParticleSource: "<<fParticleSource->GetParticleDefinition()->GetParticleName()<<" pos " 
+      <<fParticleSource->GetParticlePosition().x()<<" "<<
+    fParticleSource->GetParticlePosition().y()<<" "<<
+    fParticleSource->GetParticlePosition().z()
+      <<" mom "
+ <<fParticleSource->GetParticleMomentumDirection().x()<<" "<<
+    fParticleSource->GetParticleMomentumDirection().y()<<" "<<
+    fParticleSource->GetParticleMomentumDirection().z()<<endl;
+
+
+  if(fParticleSource->GetParticleDefinition()->GetParticleName() == "opticalphoton"){
+    fParticleSource->SetParticlePolarization(getRandomPolarization(fParticleSource->GetParticleMomentumDirection()));
+  }
+
+  fParticleSource->GeneratePrimaryVertex(event);
+  
+
+  return;
+}
+
+
+
+G4ThreeVector Cube666_PrimaryGeneratorAction::getRandomPolarization(G4ThreeVector particleMomentumDirection){
+
+  
+  //if(fParticleGun->GetParticleDefinition()->GetParticleName() != "opticalphoton"){
+  if(fParticleSource->GetParticleDefinition()->GetParticleName() != "opticalphoton"){
+    if(VERBOSE) G4cout <<"in PrimaryGeneratorAction::getRandomPolarization(..) :"
+		       <<" the particle in particleGun is not an opticalphoton" << G4endl;
+     return G4ThreeVector(1.,0.,0.);
+   }
+
+  if(!particleMomentumDirection.mag()){
+    G4cout<<"photon momentum = 0. return default value (1.,0.,0.) for photon polarization."<<G4endl;
+    return G4ThreeVector(1.,0.,0.);
+  }
+
+  G4ThreeVector e1,e2;
+  e1 = particleMomentumDirection.orthogonal(); e1 = e1/e1.mag();
+  e2 = e1.cross(particleMomentumDirection);    e2 = e2/e2.mag();
+  
+  G4double phi = G4UniformRand()*360.*deg;
+  
+  G4ThreeVector polar = e1*cos(phi) + e2*sin(phi);
+
+  //cout<<" polar: "<<e1<<" "<<e2<<" "<<phi<<endl;
+  return polar;
+}
+
+
+Cube666_PrimaryGeneratorAction* Cube666_PrimaryGeneratorAction::getInstance(){
+  if(!fInstance) fInstance = new Cube666_PrimaryGeneratorAction;
+  return fInstance;
+}
